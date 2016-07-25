@@ -8,6 +8,7 @@ import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.SimpleAdapter;
 import android.widget.TextView;
 
 import com.example.hx.myapplication.download.Download;
@@ -19,6 +20,7 @@ import org.xml.sax.XMLReader;
 
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -50,9 +52,29 @@ public class MainActivity extends ListActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == Update) {//点击更新
+            //下载包含所有Mp3基本信息的xml文件
             String xml = downloadXML("http//:192.168.0.5:8081/mp3/resources.xml");
-            //System.out.println("xml-----"+xml);
-            parse(xml);
+            //对xml进行解析，并将解析的结果放置到Mp3Info对象当中；最后将这些Mp3Info放置到List当中
+
+            List<Mp3Info> mp3Infos = parse(xml);
+            //生成一个list对象，并按照simpleadapter的标准，将Mp3Infos当中的数据添加到List当中去。
+            List<HashMap<String, String>> list = new ArrayList<HashMap<String, String>>();
+            for (Iterator iterator = mp3Infos.iterator(); iterator.hasNext(); ) {
+                Mp3Info mp3Info = (Mp3Info) iterator.next();
+                HashMap<String, String> map = new HashMap<String, String>();
+                map.put("mp3_name", mp3Info.getMp3Name());
+                map.put("mp3_size", mp3Info.getMp3Size());
+                list.add(map);
+                /*map.put("irc name",mp3Info.getIrcName());
+                map.put("irc size",mp3Info.getIrcSize());*/
+
+            }
+            //创建一个simpleAdapte对象
+            SimpleAdapter adapter = new SimpleAdapter(this, list,
+                    R.layout.mp3info_item, new String[]{"mp3_name", "mp3_size"},
+                    new int[]{R.id.mp3_name, R.id.mp3_size});
+            //将这个Simpleadapter对象设置到ListActivity当中；
+            setListAdapter(adapter);
 
         } else if (item.getItemId() == About) {//点击关于
 
