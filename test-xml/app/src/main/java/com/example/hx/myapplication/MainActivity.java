@@ -10,7 +10,25 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.example.hx.myapplication.download.Download;
+import com.example.hx.myapplication.model.Mp3Info;
+import com.example.hx.myapplication.xml.Mp3ListContentHandler;
+
+import org.xml.sax.InputSource;
+import org.xml.sax.XMLReader;
+
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.xml.parsers.SAXParserFactory;
+
 public class MainActivity extends ListActivity {
+    private static final int Update = 1;
+    private static final int About = 1;
+
+
 
     /*
     在用户点击menu 按钮后会调用该方法，，我们可以在这个方法中加入自己的按钮控件
@@ -18,9 +36,8 @@ public class MainActivity extends ListActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        menu.add(0,1,1,R.string.mp3list_undate);
-        menu.add(1,2,2,R.string.mp3list_about);
-
+        menu.add(0, Update, 1, R.string.mp3list_undate);
+        menu.add(1, About, 2, R.string.mp3list_about);
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -32,8 +49,44 @@ public class MainActivity extends ListActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == Update) {//点击更新
+            String xml = downloadXML("http//:192.168.0.5:8081/mp3/resources.xml");
+            //System.out.println("xml-----"+xml);
+            parse(xml);
 
-        System.out.println("itemId----->"+item.getItemId());
+        } else if (item.getItemId() == About) {//点击关于
+
+        }
+        System.out.println("itemId----->" + item.getItemId());
         return super.onOptionsItemSelected(item);
+    }
+
+    private String downloadXML(String urlStr) {
+        Download httpDownloader = new Download();
+        String result = httpDownloader.download(urlStr);
+
+        return result;
+    }
+
+    private List<Mp3Info> parse(String xmlStr) {
+        SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
+        try {
+            XMLReader xmlReader = saxParserFactory.newSAXParser().getXMLReader();
+            List<Mp3Info> infos = new ArrayList<Mp3Info>();
+            Mp3ListContentHandler mp3ListContentHandler = new Mp3ListContentHandler
+                    (infos);
+            xmlReader.setContentHandler(mp3ListContentHandler);
+
+            xmlReader.parse(new InputSource(new StringReader(xmlStr)));
+            for (Iterator iterator = infos.iterator(); iterator.hasNext(); ) {
+                Mp3Info mp3Info = (Mp3Info) iterator.next();
+                System.out.println(mp3Info);
+            }
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }
